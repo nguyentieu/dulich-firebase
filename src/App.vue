@@ -206,7 +206,7 @@
                                                     </button>
                                                 </td>
                                                 <td>{{ tour.diadiem }}</td>
-                                                <td>{{ tour.gioithieu }}</td>
+                                                <td class="gioithieu"><p>{{ tour.gioithieu }}<p></td>
                                                 <td>{{ tour.rating }}</td>
                                                 <td><span class="glyphicon glyphicon-trash" aria-hidden="true" v-on:click="removeTour(tour)"></span></td>
                                             </tr>
@@ -453,7 +453,7 @@
         },
 
         mounted() {
-            let admin = localStorage.getItem('checkAdmin');
+            let admin = localStorage.getItem('checkAdmin') ? localStorage.getItem('checkAdmin') : '';
 
             this.checkAdmin = admin;
         },
@@ -640,7 +640,7 @@
         -moz-osx-font-smoothing: grayscale;
         color: #2c3e50;
         margin-top: 20px;
-        width: 1800px;
+      
     }
 
     ul li {
@@ -815,5 +815,15 @@
     .forgot-password:active,
     .forgot-password:focus{
         color: rgb(12, 97, 33);
+    }
+
+    .gioithieu p {
+        white-space: nowrap;
+        width: 150px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .container {
+        width: 1200px!important;
     }
 </style>
