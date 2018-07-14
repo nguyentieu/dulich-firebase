@@ -42,7 +42,7 @@
                     <li role="presentation" class="active"><a href="#diem-dl" aria-controls="diem-dl" role="tab" data-toggle="tab" aria-expanded="true">Điểm du lịch</a></li>
                     <li role="presentation" class=""><a href="#danhgia" aria-controls="danhgia" role="tab" data-toggle="tab" aria-expanded="false">Đánh giá</a></li>
                     <li role="presentation" class=""><a href="#user" aria-controls="user" role="tab" data-toggle="tab" aria-expanded="false">Người dùng</a></li>
-                    <li role="presentation" class=""><a href="#comment" aria-controls="comment" role="tab" data-toggle="tab" aria-expanded="false">Statitics</a></li>
+                    <li role="presentation" class=""><a href="#user-tour" aria-controls="user-tour" role="tab" data-toggle="tab" aria-expanded="false">Điểm du lịch của người dùng</a></li>
                 </ul>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="diem-dl">
@@ -206,7 +206,7 @@
                                                     </button>
                                                 </td>
                                                 <td>{{ tour.diadiem }}</td>
-                                                <td class="gioithieu"><p>{{ tour.gioithieu }}<p></td>
+                                                <td class="gioithieu"><p>{{ tour.gioithieu }}</p></td>
                                                 <td>{{ tour.rating }}</td>
                                                 <td><span class="glyphicon glyphicon-trash" aria-hidden="true" v-on:click="removeTour(tour)"></span></td>
                                             </tr>
@@ -230,7 +230,7 @@
                                                         v-for="image in showImages" 
                                                         v-bind:key="image['.key']"
                                                     >
-                                                        <img :src="image" width="150" class="img-responsive"/>
+                                                        <img :src="image" width="150" style="height: 140px!important; margin-top: 10px" class="img-responsive"/>
                                                     </div>
                                                 </div>
                                             </div>
@@ -388,8 +388,73 @@
                             </div>
                         </div>
                     </div>
-                    <div role="tabpanel" class="tab-pane" id="comment" style="">
-                    
+                    <div role="tabpanel" class="tab-pane" id="user-tour" style="">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Danh sách điểm du lịch của người dùng</h3>
+                            </div>
+                            <div class="panel-body">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã Điểm Du Lịch</th>
+                                            <th>Tên</th>
+                                            <th>Hình Ảnh</th>
+                                            <th>Địa Điểm</th>
+                                            <th>Giới Thiệu</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody 
+                                        name="custom-classes-transition"
+                                        enter-active-class="animated tada"
+                                        leave-active-class="animated bounceOutRight"
+                                        is="transition-group"
+                                    >
+                                        <tr 
+                                            v-for="tour in userTours" 
+                                            v-bind:key="tour['.key']"
+                                        >
+                                            <td>{{ tour.ma }}</td>
+                                            <td>{{ tour.ten }}</td>
+                                            <td> 
+                                                <button type="button" @click="showImageUser(tour.hinhanh)" class="btn btn-primary" data-toggle="modal" data-target="#userModal">
+                                                    Chi tiết
+                                                </button>
+                                            </td>
+                                            <td>{{ tour.diadiem }}</td>
+                                            <td class="gioithieu"><p>{{ tour.gioithieu }}</p></td>
+                                            <td>{{ tour.rating }}</td>
+                                            <td><span class="glyphicon glyphicon-trash" aria-hidden="true" v-on:click="removeTourUser(tour)"></span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Modal -->
+                            <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="exampleModalLabel">Các hình ảnh</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="image-detail row">
+                                                <div 
+                                                    class="col-sm-4"
+                                                    v-for="image in showImagesUser" 
+                                                    v-bind:key="image['.key']"
+                                                >
+                                                    <img :src="image" width="150" style="height: 140px!important; margin-top: 10px" class="img-responsive"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -417,6 +482,7 @@
     let upLoad = storage.ref()
     let ratesRef = db.ref('Danhgia')
     let usersRef = db.ref('users')
+    let userToursRef = db.ref('DiaDanhNguoiDung')
 
     export default {
         name: 'app',
@@ -438,6 +504,7 @@
                 },
                 uploadTask: [],
                 showImages: [],
+                showImagesUser: [],
                 errors: [],
                 checkAdmin: '',
                 email: '',
@@ -449,7 +516,8 @@
         firebase: {
             tours: toursRef,
             rates: ratesRef,
-            users: usersRef
+            users: usersRef,
+            userTours: userToursRef
         },
 
         mounted() {
@@ -517,6 +585,10 @@
                 this.showImages = image;
             },
 
+            showImageUser(image) {
+                this.showImagesUser = image;
+            },
+
             onChangeTour() {
                 const danhmuc = this.danhmuc
                 const random = Math.floor(100000 + Math.random() * 900000);
@@ -535,35 +607,6 @@
 
             addTour(e) {
                 this.errors = [''];
-                if(!this.newTour.danhmuc) {
-                    this.errors.push("Cum diem du lich required.")
-                    toastr.warning("Ten dia diem required.");
-                }
-
-                if(!this.newTour.ma) {
-                    this.errors.push("Ma diem du lich required.")
-                    toastr.warning("Ma dia diem required.");
-                }
-
-                if(!this.newTour.ten) {
-                    this.errors.push("Ten diem du lich required.")
-                    toastr.warning("Ten dia diem required.");
-                }
-
-                if(!this.newTour.diadiem) {
-                    this.errors.push("Dia diem required.")
-                    toastr.warning("Dia diem required.");
-                }
-               
-                if(!this.newTour.ten) {
-                    this.errors.push("Gioi thieu required.")
-                    toastr.warning("Gioi thieu required.");
-                }
-              
-                if(!this.newTour.rating) {
-                    this.errors.push("Rating required.")
-                    toastr.warning("Rating required.");
-                }
                
                 e.preventDefault();
                 if(this.errors == '') {
@@ -584,6 +627,11 @@
 
             removeTour(tour) {
                 toursRef.child(tour['.key']).remove()
+                toastr.success('Tour removed successfully')
+            },
+
+            removeTourUser(tour) {
+                userToursRef.child(tour['.key']).remove()
                 toastr.success('Tour removed successfully')
             },
 
